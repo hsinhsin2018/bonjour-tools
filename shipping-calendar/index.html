@@ -272,6 +272,11 @@ const HOLIDAYS = {
   "2027-12-31":"開國紀念日補假（2028元旦）"
 };
 const START_FROM = "2026-08-01";
+// ===== 網站模式 =====
+// "claude"：Claude 網頁版，使用共用資料庫，可新增／修改／刪除。
+// "github"：GitHub Pages 版（給同仁查看），唯讀，資料讀取同資料夾的 products.json。
+const SITE_MODE = "github";
+
 // ===== 新品資料 =====
 // 正式使用時，資料存在本頁的共用資料庫，同仁上傳後所有人的月曆即時更新。
 // 以下清單只在「離線模式」（直接用瀏覽器開啟 HTML 檔、沒有共用資料庫）且本機尚無資料時作為預設值。
@@ -528,6 +533,22 @@ function startOffline(reason){
 }
 setProducts([]);   // 先畫出月曆
 (async ()=>{
+  if (SITE_MODE==="github"){
+    document.body.classList.add("ro","site-gh");
+    document.getElementById("upDetails").classList.add("hide");
+    try {
+      const r = await fetch("products.json?t=" + Date.now(), {cache:"no-store"});
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      MODE = "github";
+      setProducts((j.products||[]).map(x=>({id:null, model:String(x.model||""), date:String(x.date||""), days:Number(x.days)||0})));
+      setSync("ok", `資料最後更新：${j.updated||"—"}　（共 ${(j.products||[]).length} 款，重新整理頁面即可取得最新資料）`);
+    } catch(e){
+      startOffline("無法讀取鞋款資料檔，");
+      document.getElementById("upDetails").classList.add("hide");
+    }
+    return;
+  }
   let db = null;
   try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e){ db = null; }
   if (!db){ startOffline(window.claude ? "未登入或無法使用共用資料庫，" : ""); return; }

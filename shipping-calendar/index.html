@@ -154,6 +154,37 @@
   body.a4 .lay2 .sheet-foot{display:block}
   .sheet-foot{display:none;font-size:10.5px;color:var(--muted);margin-top:2mm;line-height:1.4}
 
+
+  /* ---- 手機版排版 ---- */
+  @media screen and (max-width:700px){
+    body:not(.a4) header.app{position:static;padding:12px}
+    body:not(.a4) h1{font-size:17px}
+    body:not(.a4) main{padding:8px}
+    body:not(.a4) .page{padding:6px;border-radius:6px}
+    body:not(.a4) .page-head h2{font-size:18px}
+    body:not(.a4) .page-head h2 small{display:block;margin:2px 0 0}
+    body:not(.a4) .legend{font-size:11px;gap:4px 8px}
+    body:not(.a4) table.cal col.we{width:7%}
+    body:not(.a4) table.cal col.wk{width:17.2%}
+    body:not(.a4) table.cal th{font-size:12px;padding:3px 0}
+    body:not(.a4) table.cal td{height:64px;padding:2px 2px}
+    body:not(.a4) .dn{font-size:14px;margin-bottom:2px}
+    body:not(.a4) td.sat .hn, body:not(.a4) td.sun .hn{display:none}
+    body:not(.a4) td.sat .dn, body:not(.a4) td.sun .dn{font-size:12px;text-align:center}
+    body:not(.a4) .hn{font-size:10.5px;line-height:1.2}
+    body:not(.a4) .grp{font-size:12px;line-height:1.3;padding:1px 2px;margin-top:2px}
+    body:not(.a4) .tag{font-size:10px;padding:0 2px;margin-right:2px}
+    body:not(.a4) .d{margin-right:3px}
+    body:not(.a4) .ev{font-size:12.5px;line-height:1.25;padding:2px 3px;margin-top:2px;word-break:break-all;overflow-wrap:anywhere}
+    body:not(.a4) .ev .etag{display:block;width:fit-content;font-size:10px;margin:0 0 1px;padding:0 3px}
+    body:not(.a4) .ev .days{display:block;font-size:10.5px}
+    body:not(.a4) .full{display:none}
+    body:not(.a4) .short{display:inline}
+    body:not(.a4) .page-foot{font-size:11px}
+    body:not(.a4) .prod{padding:10px}
+    body:not(.a4) .prod table{font-size:12.5px}
+    body:not(.a4) .prod th, body:not(.a4) .prod td{padding:3px 4px}
+  }
   @page{size:A4 portrait;margin:0}
   @media print{
     body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}

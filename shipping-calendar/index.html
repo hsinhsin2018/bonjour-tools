@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%224%22%20y%3D%228%22%20width%3D%2256%22%20height%3D%2252%22%20rx%3D%228%22%20fill%3D%22%23fff%22%20stroke%3D%22%230a3a85%22%20stroke-width%3D%224%22/%3E%3Cpath%20d%3D%22M4%2016a8%208%200%200%201%208-8h40a8%208%200%200%201%208%208v8H4z%22%20fill%3D%22%230b4fb3%22/%3E%3Crect%20x%3D%2216%22%20y%3D%222%22%20width%3D%226%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%230a3a85%22/%3E%3Crect%20x%3D%2242%22%20y%3D%222%22%20width%3D%226%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%230a3a85%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2242%22%20font-family%3D%22Arial%2CHelvetica%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2220%22%20text-anchor%3D%22middle%22%20fill%3D%22%230b4fb3%22%3E30%3C/text%3E%3Ctext%20x%3D%2232%22%20y%3D%2257%22%20font-family%3D%22Arial%2CHelvetica%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2215%22%20text-anchor%3D%22middle%22%20fill%3D%22%23c25700%22%3E45%3C/text%3E%3C/svg%3E">
+<title>出貨工作日計算表 2026/8–2027/12（30／45 個工作日）</title>
+<style>
+  :root{
+    --ink:#1f2328; --muted:#6b7280; --line:#d0d5dd;
+    --sat:#e8f1fb; --sun:#fdeeee; --hol:#d61f1f; --holbg:#ffe3e3;
+    --c30:#0b4fb3; --c30bg:#dbe8ff; --c30tx:#0a3a85; --c45:#c25700; --c45bg:#ffe7c7; --c45tx:#7a3300;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;color:var(--ink);background:#f4f5f7}
+  header.app{background:#fff;border-bottom:1px solid var(--line);padding:16px 20px;position:sticky;top:0;z-index:10}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+  .toolbar select,.toolbar input,.toolbar button{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+  .toolbar button{cursor:pointer}
+  .toolbar button.primary{background:var(--c30);color:#fff;border-color:var(--c30)}
+  .toolbar label{font-size:14px;display:flex;align-items:center;gap:6px}
+  .lookup{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+  .lookup b{font-size:14px}
+  .result{font-size:14px}
+  .result .r30{color:var(--c30);font-weight:700}
+  .result .r45{color:var(--c45);font-weight:700}
+  .notice{display:none;margin-top:10px;padding:8px 12px;border-radius:6px;background:#fff7e6;border:1px solid #f5c26b;font-size:13px}
+  .notice.show{display:block}
+  main{padding:20px;max-width:1200px;margin:0 auto}
+  .rules{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;font-size:13px;margin-bottom:16px;line-height:1.7}
+  .rules ul{margin:4px 0 0;padding-left:20px}
+
+  /* ---- 月曆 ---- */
+  .sheet{margin-bottom:22px}
+  .page{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:22px}
+  .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+  .page-head h2{margin:0;font-size:24px}
+  .page-head h2 small{font-size:13px;color:var(--muted);font-weight:400;margin-left:8px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;align-items:center}
+  .sw{display:inline-block;width:14px;height:14px;border:1px solid var(--line);vertical-align:-2px;margin-right:4px;border-radius:2px}
+  table.cal{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.cal col.we{width:9%}
+  table.cal col.wk{width:16.4%}
+  table.cal th{font-size:15px;padding:5px 0;border:1px solid var(--line);background:#f3f4f6}
+  table.cal th.sun{background:#f9d9d9;color:#a31515}
+  table.cal th.sat{background:#d6e6f8;color:#1d4f91}
+  table.cal td{border:1px solid var(--line);vertical-align:top;padding:3px 4px;height:120px}
+  td.sat{background:var(--sat)}
+  td.sun{background:var(--sun)}
+  td.hol{background:var(--holbg)}
+  td.empty{background:#fafafa}
+  .dn{font-weight:900;font-size:18px;line-height:1.1;color:#000;padding-bottom:2px;border-bottom:1.5px solid #000;margin-bottom:3px;font-family:Arial,"Noto Sans TC",sans-serif}
+  td.sun .dn{color:#a31515;border-bottom-color:transparent}
+  td.sat .dn{color:#1d4f91;border-bottom-color:transparent}
+  td.hol .dn{color:var(--hol);border-bottom-color:var(--hol)}
+  .hn{color:var(--hol);font-weight:700;font-size:13.5px;line-height:1.25;margin-top:2px}
+  .grp{margin-top:3px;border-radius:3px;padding:2px 4px;font-size:14px;line-height:1.35}
+  .grp.g30{background:var(--c30bg);color:var(--c30tx)}
+  .grp.g45{background:var(--c45bg);color:var(--c45tx)}
+  .tag{display:inline-block;font-weight:700;font-size:12px;color:#fff;border-radius:3px;padding:0 4px;margin-right:4px}
+  .g30 .tag{background:var(--c30)}
+  .g45 .tag{background:var(--c45)}
+  .d{display:inline-block;margin-right:7px;white-space:nowrap;font-weight:500}
+  .d.y26{font-style:italic;text-decoration:underline dotted}
+  .page-foot{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  /* 新品上架／最晚出貨 */
+  .ev{margin-top:3px;border-radius:3px;padding:1px 4px;font-weight:800;font-size:14px;line-height:1.3}
+  .ev .etag{display:inline-block;font-size:11px;font-weight:700;border-radius:3px;padding:0 4px;margin-right:4px;vertical-align:1px}
+  .ev.launch{background:#e3f5e7;color:#0f5a25;border:1.5px solid #1e8e3e}
+  .ev.launch .etag{background:#1e8e3e;color:#fff}
+  .ev.launch .days{font-weight:600;font-size:.88em}
+  .ev.due{background:#5b1a99;color:#fff;border:1.5px solid #5b1a99}
+  .ev.due .etag{background:#fff;color:#5b1a99}
+  .ev.due .days{font-weight:600;font-size:.88em;opacity:.9}
+  .short{display:none}
+  body.a4 .lay1 .ev{font-size:15px}
+  body.a4 .lay2 .full{display:none}
+  body.a4 .lay2 .short{display:inline}
+  body.a4 .lay2 .ev{display:inline-block;margin-right:2px}
+  body.a4 .lay2 .lg-wk{display:none}
+  body.a4 .lay2 .page-head h2{font-size:17px}
+  body.a4 .lay2 .page-head h2 small{font-size:10px}
+  body.a4 .lay2 .legend{font-size:10px;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+  body.a4 .lay2 .grp{font-size:11px !important;line-height:1.15 !important}
+  body.a4 .lay2 .ev{font-size:10.5px !important}
+  body.a4 .lay2 .dn{font-size:12.5px !important}
+  body.a4 .lay2 table.cal td{height:10mm !important}
+  body.a4 .lay2 .ev{font-size:11.5px;padding:0 3px;margin-top:1px;line-height:1.2}
+  body.a4 .lay2 .ev .etag{font-size:9.5px;padding:0 2px;margin-right:2px}
+  .prod{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:16px}
+  .prod table{border-collapse:collapse;width:100%;max-width:720px;margin-top:6px}
+  .prod th,.prod td{border:1px solid var(--line);padding:4px 8px;text-align:left}
+  .prod th{background:#f3f4f6}
+  .prod td.duec{color:#5b1a99;font-weight:800}
+  .prod details{border-top:1px solid var(--line);padding:8px 0}
+  .prod summary{cursor:pointer;font-size:15px;padding:2px 0}
+  .muted{color:var(--muted);font-weight:400;font-size:13px}
+  .syncbar{font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#bbb}
+  .dot.ok{background:#1e8e3e}.dot.wait{background:#f2a900}.dot.off{background:#9ca3af}.dot.err{background:#d61f1f}
+  .up{margin-top:8px}
+  .upform{max-width:520px}
+  .upform.editing{background:#f6f0ff;border:1px solid #c9b3ef;border-radius:8px;padding:8px 12px}
+  .editpick{padding-bottom:8px;border-bottom:1px dashed var(--line)}
+  #fPreview{font-size:13px;color:#5b1a99;font-weight:700}
+  .prod .edit{font-size:12px;padding:2px 8px;border:1px solid #b9a3e3;color:#5b1a99;background:#fff;border-radius:5px;cursor:pointer;margin-right:4px}
+  .up h4{margin:4px 0 8px;font-size:14px}
+  .up .row{margin:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .up input,.up select,.up textarea,.up button{font:inherit;font-size:14px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+  .up textarea{width:100%;font-family:ui-monospace,Consolas,monospace}
+  .up button{cursor:pointer}
+  .up button.primary,.prod button.primary{background:var(--c30);color:#fff;border-color:var(--c30)}
+  .hint{font-size:12.5px;color:var(--muted);margin:0 0 6px;line-height:1.6}
+  .hint code{background:#f3f4f6;padding:0 4px;border-radius:3px;color:#333}
+  .msg{font-size:13px}
+  .msg.ok{color:#1e8e3e}.msg.err{color:#d61f1f}
+  .ronote{background:#fff7e6;border:1px solid #f5c26b;border-radius:6px;padding:6px 10px;font-size:13px;margin-bottom:8px}
+  .prod table .bad td{background:#fff0f0}
+  .prod .del{font-size:12px;padding:2px 8px;border:1px solid #e3a5a5;color:#b42318;background:#fff;border-radius:5px;cursor:pointer}
+  .prod .del.confirm{background:#b42318;color:#fff}
+  .ro .needwrite{display:none!important}
+  body.a4 .prod{width:210mm;margin:0 auto 16px}
+  @media print{.prod{display:none!important}}
+
+  /* ---- A4 預覽模式（螢幕） ---- */
+  body.a4 main{max-width:none}
+  body.a4 .rules{width:210mm;margin:0 auto 16px}
+  body.a4 .sheet{width:210mm;height:297mm;margin:0 auto 24px;padding:8mm;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15);overflow:hidden}
+  body.a4 .page{border:none;border-radius:0;padding:0;margin:0}
+
+  .hide{display:none!important}
+
+  /* ---- 列印共用尺寸（A4 預覽與實際列印相同） ---- */
+  body.a4 .lay1 table.cal td{height:34mm}
+  body.a4 .lay1 .dn{font-size:20px}
+  body.a4 .lay1 .hn{font-size:14px}
+  body.a4 .lay1 .grp{font-size:16px}
+  body.a4 .lay1 .tag{font-size:13px}
+  body.a4 .lay2 .page{max-height:none}
+  body.a4 .lay2 .page + .page{margin-top:4mm;padding-top:4mm;border-top:1.5px dashed #bbb}
+  body.a4 .lay2 .page-head{margin-bottom:4px}
+  body.a4 .lay2 .page-head h2{font-size:20px}
+  body.a4 .lay2 .legend{font-size:11px;gap:8px}
+  body.a4 .lay2 table.cal th{font-size:12px;padding:2px 0}
+  body.a4 .lay2 table.cal td{height:12mm;padding:1px 3px}
+  body.a4 .lay2 .dn{font-size:14px;padding-bottom:1px;margin-bottom:1px}
+  body.a4 .lay2 .hn{font-size:11px;line-height:1.15;margin-top:1px}
+  body.a4 .lay2 .grp{font-size:12px;line-height:1.2;padding:0 3px;margin-top:1px}
+  body.a4 .lay2 .tag{font-size:10.5px;padding:0 3px}
+  body.a4 .lay2 .d{margin-right:5px}
+  body.a4 .lay2 .page-foot{display:none}
+  body.a4 .lay2 .sheet-foot{display:block}
+  .sheet-foot{display:none;font-size:10.5px;color:var(--muted);margin-top:2mm;line-height:1.4}
+
+  @page{size:A4 portrait;margin:0}
+  @media print{
+    body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    header.app,.rules,.no-print{display:none!important}
+    main{padding:0;max-width:none}
+    .sheet{width:210mm;height:297mm;margin:0;padding:8mm;box-shadow:none;overflow:hidden;page-break-after:always;break-after:page}
+    .sheet:last-child{page-break-after:auto;break-after:auto}
+    .page{border:none;border-radius:0;padding:0;margin:0}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>出貨工作日計算表<span id="rangeText"></span></h1>
+  <p class="sub">格子內列出「哪些起算日」的第 30 個／第 45 個工作日剛好落在這一天。起算日自 2026/8/1 起。</p>
+  <div class="toolbar">
+    <label>顯示月份
+      <select id="monthSel">
+      </select>
+    </label>
+    <label class="muted" title="月曆預設只顯示前 6 個月到後 11 個月（共 1 年半）"><input type="checkbox" id="showAllMonths"> 顯示已隱藏月份<span id="hiddenMonthsNote"></span></label>
+    <label>列印版面
+      <select id="laySel">
+        <option value="1">一頁 1 個月</option>
+        <option value="2">一頁 2 個月</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="a4Toggle"> A4 列印預覽模式</label>
+    <button class="primary" id="printBtn">列印（A4）</button>
+    <div class="lookup">
+      <b>快速查詢</b>
+      <input type="date" id="startInput" min="2026-08-01" max="2027-12-31" value="2026-08-01">
+      <span class="result" id="lookupResult"></span>
+    </div>
+  </div>
+  <div class="notice" id="printNotice">此檢視視窗無法直接開啟列印對話框。請將本頁另存或下載 HTML 檔，用 Chrome／Edge 開啟後再按「列印（A4）」或 Ctrl+P（Mac：⌘P），紙張選 A4、勾選「背景圖形」。「列印版面」可選一頁 1 個月或 2 個月；「顯示月份」選全部會印 2026/8～2027/12，選單一月份則只印該月。</div>
+</header>
+
+<main>
+  <section class="rules">
+    <b>計算規則</b>
+    <ul>
+      <li>起算日當天不算，從隔天開始算第 1 個工作日。</li>
+      <li>只計星期一至星期五；扣除國定假日及政府公告之補假日（依行政院人事行政總處 115、116 年政府行政機關辦公日曆表，「補假不補班」，全年無補班日）。</li>
+      <li>每個起算日分別算出第 30 與第 45 個工作日；同一天若對應多個起算日（例如週五、週六、週日起算結果相同），全部列出。</li>
+      <li><span style="font-style:italic;text-decoration:underline dotted">12/31</span>（斜體、虛線底）為 2026 年的起算日，其餘為 2027 年。</li>
+    </ul>
+  </section>
+  <section class="prod">
+    <div class="syncbar"><span id="syncDot" class="dot wait"></span><span id="syncText">連線共用資料中…</span></div>
+    <details id="prodDetails">
+      <summary><b>新品出貨到期一覽</b> <span id="prodCount" class="muted"></span><span class="muted">（點此展開／收合）</span></summary>
+      <div id="prodTable"></div>
+    </details>
+    <details id="upDetails">
+      <summary><b>上傳／新增鞋款</b> <span class="muted">（點此展開／收合）</span></summary>
+      <div class="up">
+        <div id="roNote" class="ronote hide">你目前的權限只能查看，無法上傳。請向本頁擁有者申請「參與者（Contributor）」以上的權限。</div>
+        <div class="upform">
+          <div class="row editpick">
+            <label>修改既有鞋款 <select id="fPick"><option value="">— 選擇要修改的型號 —</option></select></label>
+          </div>
+          <h4 id="fTitle">新增鞋款</h4>
+          <div class="row"><label>型號 <input id="fModel" placeholder="例：B0661"></label></div>
+          <div class="row"><label>上架日 <input type="date" id="fDate" min="2026-08-01" max="2027-12-31"></label></div>
+          <div class="row"><label>出貨工作日
+            <select id="fDays"><option>30</option><option selected>45</option><option value="other">其他…</option></select>
+            <input id="fDaysOther" type="number" min="1" max="200" class="hide" style="width:70px"></label></div>
+          <div class="row" id="fPreview"></div>
+          <div class="row">
+            <button id="fAdd" class="primary">新增</button>
+            <button id="fCancel" class="hide">取消修改</button>
+            <span id="fMsg" class="msg"></span>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+  <div id="cal"></div>
+</main>
+
+<script>
+// ===== 假日資料（行政院人事行政總處 115 年、116 年政府行政機關辦公日曆表） =====
+// 2026 年部分僅列 8/1 之後的假日。週一～五的項目會被扣除；落在週六日的項目只做標示。
+const HOLIDAYS = {
+  "2026-09-25":"中秋節",
+  "2026-09-28":"教師節",
+  "2026-10-09":"國慶日補假",
+  "2026-10-10":"國慶日",
+  "2026-10-25":"臺灣光復暨金門古寧頭大捷紀念日",
+  "2026-10-26":"光復節補假",
+  "2026-12-25":"行憲紀念日",
+  "2027-01-01":"開國紀念日",
+  "2027-02-04":"小年夜",
+  "2027-02-05":"除夕",
+  "2027-02-06":"春節（初一）",
+  "2027-02-07":"春節（初二）",
+  "2027-02-08":"春節（初三）",
+  "2027-02-09":"春節補假（初一）",
+  "2027-02-10":"春節補假（初二）",
+  "2027-02-28":"和平紀念日",
+  "2027-03-01":"和平紀念日補假",
+  "2027-04-04":"兒童節",
+  "2027-04-05":"清明節",
+  "2027-04-06":"兒童節補假",
+  "2027-04-30":"勞動節補假",
+  "2027-05-01":"勞動節",
+  "2027-06-09":"端午節",
+  "2027-09-15":"中秋節",
+  "2027-09-28":"教師節",
+  "2027-10-10":"國慶日",
+  "2027-10-11":"國慶日補假",
+  "2027-10-25":"臺灣光復暨金門古寧頭大捷紀念日",
+  "2027-12-24":"行憲紀念日補假",
+  "2027-12-25":"行憲紀念日",
+  "2027-12-31":"開國紀念日補假（2028元旦）"
+};
+const START_FROM = "2026-08-01";
+// ===== 新品資料 =====
+// 正式使用時，資料存在本頁的共用資料庫，同仁上傳後所有人的月曆即時更新。
+// 以下清單只在「離線模式」（直接用瀏覽器開啟 HTML 檔、沒有共用資料庫）且本機尚無資料時作為預設值。
+const OFFLINE_DEFAULT = [
+  ["B0661","2026-08-14",45],["B0636","2026-08-17",30],["B0668","2026-08-21",45],["B0676","2026-08-28",45],
+  ["B0678","2026-09-04",45],["B0603","2026-09-04",30],["B0658（新色）","2026-09-11",45],["B0664","2026-09-18",45],
+  ["B0675","2026-10-02",45],["B0634","2026-10-16",30],["B0680","2026-10-30",45],["B0679","2026-11-13",30],["B0677","2026-11-20",45]
+];
+// 月曆範圍：2026/8 ～ 2027/12
+const MONTH_LIST = [];
+for (let y=2026, m=7; y<2027 || (y===2027 && m<=11); m++){ if(m>11){m=0;y++;} MONTH_LIST.push([y,m]); }
+const DATA_END = "2027-12-31";   // 2028 年假日尚未公告，不往後推算
+const WD = ["日","一","二","三","四","五","六"];
+
+const pad = n => String(n).padStart(2,"0");
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,dd] = s.split("-").map(Number); return new Date(y, m-1, dd); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const isWorkday = d => { const w = d.getDay(); return w!==0 && w!==6 && !HOLIDAYS[key(d)]; };
+
+// 第 n 個工作日（起算日不算）；超出資料範圍回傳 null
+function nthWorkday(start, n){
+  let d = new Date(start), c = 0;
+  const end = parse(DATA_END);
+  while (c < n){
+    d = addDays(d,1);
+    if (d > end) return null;
+    if (isWorkday(d)) c++;
+  }
+  return d;
+}
+
+// 新品：上架日 / 最晚出貨日 對照（資料變動時重算）
+let launchMap = {}, dueMap = {}, PROD_ROWS = [];
+const esc = t => String(t).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function setProducts(list){
+  launchMap = {}; dueMap = {};
+  PROD_ROWS = list.filter(p=>p && p.model && /^\d{4}-\d{2}-\d{2}$/.test(p.date) && p.days>0)
+    .map(p=>{
+      const launch = parse(p.date), due = nthWorkday(launch, p.days);
+      (launchMap[p.date] ||= []).push({model:p.model, n:p.days});
+      if (due) (dueMap[key(due)] ||= []).push({model:p.model, n:p.days});
+      return {id:p.id, model:p.model, launch, n:p.days, due, by:p.by||null};
+    })
+    .sort((x,y)=> x.launch-y.launch || x.model.localeCompare(y.model));
+  if (typeof layout==="function" && cal) layout();
+  renderProdTable();
+}
+
+// 建立對照：目標日 -> 起算日清單
+const map30 = {}, map45 = {};
+(function build(){
+  const end = parse(DATA_END);
+  for (let s = parse(START_FROM); s <= end; s = addDays(s,1)){
+    const t30 = nthWorkday(s,30), t45 = nthWorkday(s,45);
+    if (t30) (map30[key(t30)] ||= []).push(new Date(s));
+    if (t45) (map45[key(t45)] ||= []).push(new Date(s));
+  }
+})();
+
+function fmt(d, cellYear){
+  const s = `${d.getMonth()+1}/${d.getDate()}`;
+  return d.getFullYear()===cellYear ? `<span class="d">${s}</span>` : `<span class="d y26" title="${d.getFullYear()}/${s}">${s}</span>`;
+}
+
+function renderMonth(Y, m){
+  const first = new Date(Y, m, 1);
+  const days = new Date(Y, m+1, 0).getDate();
+  const lead = first.getDay();
+  let html = `<section class="page" data-month="${Y}-${m}">
+    <div class="page-head">
+      <h2>${Y} 年 ${m+1} 月<small>民國 ${Y-1911} 年｜出貨工作日計算表</small></h2>
+      <div class="legend">
+        <span><b style="font-size:1.15em;border-bottom:1.5px solid #000">黑粗<span class="full">＋底線</span></b>＝日期</span>
+        <span><span class="sw" style="background:var(--c30)"></span><span style="color:var(--c30tx)">藍字＝30 天起算日</span></span>
+        <span><span class="sw" style="background:var(--c45)"></span><span style="color:var(--c45tx)">橘字＝45 天起算日</span></span>
+        <span class="lg-wk"><span class="sw" style="background:var(--sat)"></span>星期六</span>
+        <span class="lg-wk"><span class="sw" style="background:var(--sun)"></span>星期日</span>
+        <span><span class="sw" style="background:var(--holbg);border-color:var(--hol)"></span><b style="color:var(--hol)">國定假日／補假</b></span>
+        <span><b style="background:#e3f5e7;color:#0f5a25;border:1.5px solid #1e8e3e;padding:0 4px;border-radius:3px">上架</b><span class="full">＝新品上架（工作日）</span><span class="short">＝上架</span></span>
+        <span><b style="background:#5b1a99;color:#fff;padding:0 4px;border-radius:3px"><span class="full">出貨延遲</span><span class="short">延遲</span></b><span class="full">＝最晚出貨日（到期型號）</span><span class="short">＝最晚出貨日</span></span>
+        <span><i style="text-decoration:underline dotted">12/31</i>＝2026 年</span>
+      </div>
+    </div>
+    <table class="cal"><colgroup><col class="we"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="we"></colgroup><thead><tr>${WD.map((w,i)=>`<th class="${i===0?'sun':i===6?'sat':''}">${w}</th>`).join("")}</tr></thead><tbody><tr>`;
+  for (let i=0;i<lead;i++) html += `<td class="empty"></td>`;
+  for (let dd=1; dd<=days; dd++){
+    const d = new Date(Y, m, dd), k = key(d), w = d.getDay();
+    const hol = HOLIDAYS[k];
+    const cls = [w===0?"sun":w===6?"sat":"", hol?"hol":""].join(" ").trim();
+    let cell = `<div class="dn">${dd}</div>`;
+    if (hol) cell += `<div class="hn">${hol}</div>`;
+    (dueMap[k]||[]).forEach(p=> cell += `<div class="ev due"><span class="etag"><span class="full">出貨延遲</span><span class="short">延遲</span></span>${esc(p.model)}<span class="days"> (${p.n})</span></div>`);
+    (launchMap[k]||[]).forEach(p=> cell += `<div class="ev launch"><span class="etag">上架</span>${esc(p.model)} <span class="days">${p.n}<span class="full">工作日</span></span></div>`);
+    const a = map30[k], b = map45[k];
+    if (a) cell += `<div class="grp g30"><span class="tag">30</span>${a.map(x=>fmt(x,Y)).join("")}</div>`;
+    if (b) cell += `<div class="grp g45"><span class="tag">45</span>${b.map(x=>fmt(x,Y)).join("")}</div>`;
+    html += `<td class="${cls}">${cell}</td>`;
+    if (w===6 && dd<days) html += `</tr><tr>`;
+  }
+  const trail = (7 - ((lead+days)%7))%7;
+  for (let i=0;i<trail;i++) html += `<td class="empty"></td>`;
+  html += `</tr></tbody></table>
+    <div class="page-foot">規則：起算日當天不算，隔天起算第 1 天；僅計週一至週五，扣除國定假日與補假（依行政院人事行政總處辦公日曆表，無補班日）。斜體虛線底日期為 2026 年。</div>
+  </section>`;
+  return html;
+}
+
+const cal = document.getElementById("cal");
+const sel = document.getElementById("monthSel");
+const lay = document.getElementById("laySel");
+
+// ===== 顯示範圍：月曆 1 年半（本月往前 6 個月～往後 11 個月）；新品清單只列上架 6 個月內 =====
+function getToday(){ const t = window.__TODAY__ ? new Date(window.__TODAY__) : new Date(); t.setHours(0,0,0,0); return t; }
+var SHOW_ALL_MONTHS = false, SHOW_OLD_PRODUCTS = false;
+function visibleMonthIdx(){
+  const t = getToday();
+  const from = new Date(t.getFullYear(), t.getMonth()-6, 1), to = new Date(t.getFullYear(), t.getMonth()+12, 0);
+  return MONTH_LIST.map((_,i)=>i).filter(i=>{
+    if (SHOW_ALL_MONTHS) return true;
+    const [y,m] = MONTH_LIST[i]; const d = new Date(y, m, 1);
+    return d >= from && d <= to;
+  });
+}
+function productCutoff(){ const t = getToday(); return new Date(t.getFullYear(), t.getMonth()-6, t.getDate()); }
+function buildMonthOptions(){
+  const vis = visibleMonthIdx(), prev = sel.value;
+  const lbl = i => `${MONTH_LIST[i][0]}/${MONTH_LIST[i][1]+1}`;
+  const years = [...new Set(vis.map(i=>MONTH_LIST[i][0]))];
+  let html = vis.length ? `<option value="all">全部（${lbl(vis[0])}～${lbl(vis[vis.length-1])}，共 ${vis.length} 個月）</option>` : `<option value="all">（無可顯示月份）</option>`;
+  if (years.length>1) years.forEach(y=>{
+    const ms = vis.filter(i=>MONTH_LIST[i][0]===y);
+    const m1 = MONTH_LIST[ms[0]][1]+1, m2 = MONTH_LIST[ms[ms.length-1]][1]+1;
+    html += `<option value="y${y}">${y} 年 ${m1===m2 ? m1 : m1+"～"+m2} 月</option>`;
+  });
+  html += vis.map(i=>`<option value="${i}">${MONTH_LIST[i][0]} 年 ${MONTH_LIST[i][1]+1} 月</option>`).join("");
+  sel.innerHTML = html;
+  sel.value = [...sel.options].some(o=>o.value===prev) ? prev : "all";
+  const allVis = (()=>{ const k=SHOW_ALL_MONTHS; SHOW_ALL_MONTHS=false; const n=visibleMonthIdx().length; SHOW_ALL_MONTHS=k; return n; })();
+  const nHidden = MONTH_LIST.length - allVis;
+  document.getElementById("hiddenMonthsNote").textContent = nHidden ? `（${nHidden} 個月）` : "";
+  document.getElementById("showAllMonths").parentElement.classList.toggle("hide", !nHidden && !SHOW_ALL_MONTHS);
+  document.getElementById("rangeText").textContent = vis.length ? `｜${MONTH_LIST[vis[0]][0]} 年 ${MONTH_LIST[vis[0]][1]+1} 月～${MONTH_LIST[vis[vis.length-1]][0]} 年 ${MONTH_LIST[vis[vis.length-1]][1]+1} 月` : "";
+}
+buildMonthOptions();
+document.getElementById("showAllMonths").addEventListener("change", e=>{ SHOW_ALL_MONTHS = e.target.checked; buildMonthOptions(); layout(); });
+
+const SHEET_FOOT = `<div class="sheet-foot">規則：起算日當天不算，隔天起算第 1 天；僅計週一至週五，扣除國定假日與補假（依行政院人事行政總處辦公日曆表，無補班日）。斜體虛線底日期為 2026 年。</div>`;
+function layout(){
+  const v = sel.value, per = Number(lay.value);
+  const idx = visibleMonthIdx();
+  const years = [...new Set(idx.map(i=>MONTH_LIST[i][0]))];
+  // 依年份分組，兩個月一頁時不跨年配對
+  const groups = v==="all" ? years.map(y=>idx.filter(i=>MONTH_LIST[i][0]===y))
+               : v[0]==="y" ? [idx.filter(i=>MONTH_LIST[i][0]===Number(v.slice(1)))]
+               : [[Number(v)]];
+  const MONTHS = {};
+  groups.flat().forEach(k=> MONTHS[k] = renderMonth(...MONTH_LIST[k]));
+  let html = "";
+  for (const g of groups){
+    for (let i=0;i<g.length;i+=per){
+      html += `<div class="sheet lay${per}">` + g.slice(i,i+per).map(k=>MONTHS[k]).join("") + (per===2?SHEET_FOOT:"") + `</div>`;
+    }
+  }
+  cal.innerHTML = html;
+}
+sel.addEventListener("change", layout);
+lay.addEventListener("change", layout);
+
+// ===== 新品出貨到期一覽（可收合） =====
+const fmtFull = d => d ? `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）` : "超出資料範圍";
+let CAN_WRITE = true, USER = null, DB = null, MODE = "loading";
+async function renderProdTable(){
+  const cut = productCutoff();
+  const rows = PROD_ROWS.filter(r=> SHOW_OLD_PRODUCTS || r.launch >= cut);
+  const nOld = PROD_ROWS.filter(r=> r.launch < cut).length;
+  document.getElementById("prodCount").textContent = (SHOW_OLD_PRODUCTS && nOld ? `共 ${rows.length} 款（含上架超過 6 個月的 ${nOld} 款）` : `顯示 ${rows.length} 款` + (nOld ? `（另有 ${nOld} 款上架超過 6 個月已隱藏）` : ""));
+  refreshPick();
+  const box = document.getElementById("prodTable");
+  const toggle = nOld ? `<p><button class="edit" id="toggleOld">${SHOW_OLD_PRODUCTS?"隱藏":"顯示"}上架超過 6 個月的 ${nOld} 款</button> <span class="muted">（${cut.getFullYear()}/${cut.getMonth()+1}/${cut.getDate()} 以前上架）</span></p>` : "";
+  if (!rows.length){ box.innerHTML = `<p class="muted">近 6 個月內沒有新品資料，請到下方「上傳／新增鞋款」新增。</p>` + toggle; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  box.innerHTML = `<table><thead><tr><th>型號</th><th>上架日</th><th>出貨工作日</th><th>最晚出貨日</th><th>狀態</th><th class="needwrite"></th></tr></thead><tbody>${
+    rows.map(r=>{
+      const st = !r.due ? "—" : r.due < today ? `<span style="color:#b42318">已過最晚出貨日</span>` : Math.round((r.due-today)/864e5)<=7 ? `<b style="color:#c25700">7 天內到期</b>` : "";
+      return `<tr><td><b>${esc(r.model)}</b></td><td>${fmtFull(r.launch)}</td><td>${r.n}</td><td class="duec">${fmtFull(r.due)}</td><td>${st}</td><td class="needwrite">${r.id?`<button class="edit" data-id="${esc(r.id)}">修改</button><button class="del" data-id="${esc(r.id)}">刪除</button>`:""}</td></tr>`;
+    }).join("")
+  }</tbody></table><p class="muted">上架日當天不算，隔天起算工作日。清單只顯示上架 6 個月內的鞋款，資料不會刪除。</p>` + toggle;
+}
+document.getElementById("prodTable").addEventListener("click", async e=>{
+  if (e.target.id==="toggleOld"){ SHOW_OLD_PRODUCTS = !SHOW_OLD_PRODUCTS; renderProdTable(); return; }
+  const ed = e.target.closest(".edit");
+  if (ed){ startEdit(ed.dataset.id); return; }
+  const btn = e.target.closest(".del"); if(!btn) return;
+  if (!btn.classList.contains("confirm")){ btn.classList.add("confirm"); btn.textContent="確定刪除？"; setTimeout(()=>{btn.classList.remove("confirm");btn.textContent="刪除";},4000); return; }
+  btn.disabled = true; btn.textContent = "刪除中…";
+  try { await store.remove(btn.dataset.id); } catch(err){ btn.textContent="失敗"; showWriteErr(err); }
+});
+
+// ===== 資料存取：共用資料庫（db）或離線（本機瀏覽器） =====
+const LS_KEY = "bj-ship-products-v1";
+function docId(model, date){
+  const hex = Array.from(new TextEncoder().encode(model)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  return `p_${date}_${hex}`.slice(0,190);
+}
+let localList = [];
+const store = {
+  async upsert(items){            // items: [{model,date,days}]
+    if (MODE==="db"){
+      for (const it of items){    // 一次一筆，逐筆等待
+        const id = docId(it.model, it.date);
+        const body = {model:it.model, date:it.date, days:it.days, at:new Date().toISOString()};
+        try { const uid = USER ? await USER.id() : null; if (uid) body.by = uid; } catch(e){}
+        await DB.collection("products").doc(id).set(body);
+      }
+    } else {
+      for (const it of items){ const id = docId(it.model,it.date); localList = localList.filter(x=>x.id!==id).concat([{...it,id}]); }
+      try { localStorage.setItem(LS_KEY, JSON.stringify(localList)); } catch(e){}
+      setProducts(localList);
+    }
+  },
+  async replace(oldId, it){      // 修改：型號或上架日變動時，先寫新資料再刪舊資料
+    const newId = docId(it.model, it.date);
+    await this.upsert([it]);
+    if (oldId && oldId!==newId) await this.remove(oldId);
+  },
+  async remove(id){
+    if (MODE==="db") await DB.collection("products").doc(id).delete();
+    else { localList = localList.filter(x=>x.id!==id); try{localStorage.setItem(LS_KEY, JSON.stringify(localList));}catch(e){} setProducts(localList); }
+  }
+};
+function setSync(state, text){
+  document.getElementById("syncDot").className = "dot " + state;
+  document.getElementById("syncText").textContent = text;
+}
+function setReadOnly(ro){
+  CAN_WRITE = !ro;
+  document.body.classList.toggle("ro", ro);
+  document.getElementById("roNote").classList.toggle("hide", !ro);
+  document.querySelectorAll("#upDetails input,#upDetails select,#upDetails textarea,#upDetails button").forEach(el=> el.disabled = ro);
+}
+function showWriteErr(err){
+  const code = err && err.code;
+  if (code==="invalid_argument" && MODE==="db") setReadOnly(true);
+  const m = code==="quota_exceeded" ? "資料量已達上限，請先刪除舊資料。" : code==="invalid_argument" ? "沒有寫入權限。" : "儲存失敗，請稍後再試。";
+  setSync("err", m);
+}
+function startOffline(reason){
+  MODE = "offline";
+  try { localList = JSON.parse(localStorage.getItem(LS_KEY)||"null"); } catch(e){ localList = null; }
+  if (!Array.isArray(localList)) localList = OFFLINE_DEFAULT.map(([model,date,days])=>({id:docId(model,date),model,date,days}));
+  setSync("off", `離線模式：${reason}資料只存在這台電腦的瀏覽器，不會與同仁共用。`);
+  setProducts(localList);
+}
+setProducts([]);   // 先畫出月曆
+(async ()=>{
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e){ db = null; }
+  if (!db){ startOffline(window.claude ? "未登入或無法使用共用資料庫，" : ""); return; }
+  DB = db; MODE = "db";
+  try { USER = await window.claude.use("user"); } catch(e){ USER = null; }
+  try { if (USER && USER.can){ const w = await USER.can("data.write"); if (w===false) setReadOnly(true); } } catch(e){}
+  let gotLive = false;
+  const timer = setTimeout(()=>{ if(!gotLive) setSync("wait","暫時連不上共用資料，顯示的內容可能不是最新。"); }, 10000);
+  DB.collection("products").onSnapshot(snap=>{
+    const list = snap.docs.map(d=>{ const x = d.data()||{}; return {id:d.id, model:String(x.model||""), date:String(x.date||""), days:Number(x.days)||0, by:x.by||null}; });
+    setProducts(list);
+    if (!snap.metadata.fromCache){ gotLive = true; clearTimeout(timer); setSync("ok", `已連線共用資料：同仁上傳或刪除後，所有人的月曆會自動更新。${CAN_WRITE?"":"（你目前只能查看）"}`); }
+  }, err=>{
+    clearTimeout(timer);
+    setSync("err", "共用資料連線中斷，請重新整理頁面。");
+  });
+})();
+
+const $ = id => document.getElementById(id);
+const fDays = $("fDays"), fOther = $("fDaysOther");
+var EDIT_ID = null;
+fDays.addEventListener("change", ()=> { fOther.classList.toggle("hide", fDays.value!=="other"); showPreview(); });
+["fDate","fDaysOther"].forEach(id=> $(id).addEventListener("input", showPreview));
+function formValues(){
+  const model = $("fModel").value.trim().replace(/\s*\(\s*/g,"（").replace(/\s*\)\s*/g,"）");
+  const date = $("fDate").value;
+  const days = Number(fDays.value==="other" ? fOther.value : fDays.value);
+  return {model, date, days};
+}
+function showPreview(){
+  const {date, days} = formValues();
+  $("fPreview").textContent = (date>=START_FROM && date<=DATA_END && days>=1 && days<=200) ? `→ 最晚出貨日：${fmtFull(nthWorkday(parse(date), days))}` : "";
+}
+function setDays(n){
+  if (n===30 || n===45){ fDays.value = String(n); fOther.classList.add("hide"); }
+  else { fDays.value = "other"; fOther.value = n; fOther.classList.remove("hide"); }
+}
+function refreshPick(){
+  const pick = document.getElementById("fPick"), cur = EDIT_ID;
+  pick.innerHTML = `<option value="">— 選擇要修改的型號 —</option>` + PROD_ROWS.filter(r=>r.id && (SHOW_OLD_PRODUCTS || r.launch >= productCutoff() || r.id===cur)).map(r=>
+    `<option value="${esc(r.id)}">${esc(r.model)}｜${r.launch.getMonth()+1}/${r.launch.getDate()} 上架｜${r.n} 工作日</option>`).join("");
+  pick.value = cur && PROD_ROWS.some(r=>r.id===cur) ? cur : "";
+}
+function startEdit(id){
+  const r = PROD_ROWS.find(x=>x.id===id); if (!r) return;
+  EDIT_ID = id;
+  $("fModel").value = r.model; $("fDate").value = key(r.launch); setDays(r.n);
+  $("fTitle").textContent = `修改鞋款：${r.model}`;
+  $("fAdd").textContent = "儲存修改"; $("fCancel").classList.remove("hide");
+  document.querySelector(".upform").classList.add("editing");
+  $("fPick").value = id; $("fMsg").textContent = ""; showPreview();
+  $("upDetails").open = true;
+  $("upDetails").scrollIntoView({behavior:"smooth", block:"center"});
+}
+function endEdit(){
+  EDIT_ID = null;
+  $("fTitle").textContent = "新增鞋款"; $("fAdd").textContent = "新增"; $("fCancel").classList.add("hide");
+  document.querySelector(".upform").classList.remove("editing");
+  $("fPick").value = ""; $("fModel").value = ""; $("fDate").value = ""; setDays(45); showPreview();
+}
+$("fPick").addEventListener("change", e=> e.target.value ? startEdit(e.target.value) : endEdit());
+$("fCancel").addEventListener("click", ()=>{ endEdit(); $("fMsg").textContent = ""; });
+$("fAdd").addEventListener("click", async ()=>{
+  const msg = $("fMsg"), {model, date, days} = formValues();
+  msg.className = "msg err";
+  if (!model) return msg.textContent = "請填型號";
+  if (!date || date<START_FROM || date>DATA_END) return msg.textContent = "上架日需在 2026/8/1～2027/12/31";
+  if (!(days>=1 && days<=200)) return msg.textContent = "請填出貨工作日";
+  const newId = docId(model, date);
+  if (newId!==EDIT_ID && PROD_ROWS.some(r=>r.id===newId)){
+    return msg.textContent = EDIT_ID ? "已有相同型號與上架日的資料，請改用該筆修改或先刪除。" : "這個型號與上架日已存在，請改用「修改」。";
+  }
+  const due = fmtFull(nthWorkday(parse(date),days));
+  msg.className = "msg"; msg.textContent = "儲存中…"; $("fAdd").disabled = true;
+  try {
+    if (EDIT_ID){ await store.replace(EDIT_ID, {model,date,days}); endEdit(); msg.className="msg ok"; msg.textContent = `已修改 ${model}，最晚出貨日 ${due}`; }
+    else { await store.upsert([{model,date,days}]); $("fModel").value=""; msg.className="msg ok"; msg.textContent = `已新增 ${model}，最晚出貨日 ${due}`; }
+  } catch(err){ msg.className="msg err"; msg.textContent="儲存失敗"; showWriteErr(err); }
+  $("fAdd").disabled = !CAN_WRITE;
+});
+
+
+// A4 模式（列印時也自動套用 A4 尺寸）
+const a4 = document.getElementById("a4Toggle");
+a4.addEventListener("change", ()=> document.body.classList.toggle("a4", a4.checked));
+window.addEventListener("beforeprint", ()=> document.body.classList.add("a4"));
+window.addEventListener("afterprint", ()=> document.body.classList.toggle("a4", a4.checked));
+
+// 列印（在不允許列印的檢視框中顯示提示）
+document.getElementById("printBtn").addEventListener("click", ()=>{
+  let fired = false;
+  const on = ()=>{ fired = true; };
+  window.addEventListener("beforeprint", on, {once:true});
+  try { window.print(); } catch(e) {}
+  setTimeout(()=>{ if(!fired) document.getElementById("printNotice").classList.add("show"); window.removeEventListener("beforeprint", on); }, 600);
+});
+
+// 快速查詢
+const inp = document.getElementById("startInput");
+function lookup(){
+  const out = document.getElementById("lookupResult");
+  if (!inp.value){ out.textContent=""; return; }
+  const s = parse(inp.value);
+  if (s < parse(START_FROM)){ out.textContent = "起算日需在 2026/8/1 之後"; return; }
+  const f = d => d ? `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）` : "超出 2027 年底（2028 年假日尚未公告）";
+  out.innerHTML = `第 30 個工作日：<span class="r30">${f(nthWorkday(s,30))}</span>　｜　第 45 個工作日：<span class="r45">${f(nthWorkday(s,45))}</span>`;
+}
+inp.addEventListener("input", lookup);
+lookup();
+</script>
+</body>
+</html>
